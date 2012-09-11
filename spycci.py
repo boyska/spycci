@@ -1,4 +1,5 @@
 import datetime
+
 import yaml
 try:
     from yaml import CLoader as Loader
@@ -12,23 +13,6 @@ class Movement(dict):
         for key, value in d.items():
             self[key] = value
 
-    #boring defaults
-    @property
-    def money(self):
-        '''Money amount'''
-        return self['money'] if 'money' in self else 0
-    @property
-    def tags(self):
-        if 'tags' not in self:
-            self.tags = set()
-        return self['tags']
-    @property
-    def other(self):
-        return self['other'] if 'other' in self else ''
-    @property
-    def date(self):
-        return self['date'] if 'date' in self else datetime.date(1970,1,1)
-
     def __str__(self):
         return '<Movement: %d>' % self.money
     
@@ -37,10 +21,25 @@ class Movement(dict):
             self[k] = v
 
     #setters are here; who knows why this is needed...
+    def __getitem__(self, key):
+        if key == 'tags':
+            return dict.__getitem__(self, 'tags') if 'tags' in self else set()
+        elif key == 'other':
+            return dict.__getitem__(self, 'other') if 'other' in self else ''
+        elif key == 'date':
+            return dict.__getitem__(self, 'date') if 'date' in self else datetime.date(1970,1,1)
+        elif key == 'money':
+            return dict.__getitem__(self, 'money') if 'money' in self else 0
+
+        try:
+            return dict.__getitem__(self, key)
+        except KeyError:
+            return ''
     def __setitem__(self, key, value):
         if key == 'date':
-            dict.__setitem__(self, key, datetime.date(
-                *[int(x) for x in value.split('-')]))
+            if value:
+                dict.__setitem__(self, key, datetime.date(
+                    *[int(x) for x in value.split('-')]))
         elif key == 'tags':
             dict.__setitem__(self, key, set(value))
         else:
@@ -58,10 +57,12 @@ class Balance(list):
         '''Get movements between start and end'''
         if end is None:
             end = datetime.date.today()
-        return self.filter(lambda m: start < m.date < end)
+        return self.filter(lambda m: start < m['date'] < end)
     def filter_tags(self, tags):
         '''this filter for ANY tag in tags (they are ORed)'''
-        return self.filter(lambda m: not m.tags.isdisjoint(tags))
+        return self.filter(lambda m: not m['tags'].isdisjoint(tags))
+    def filter_other(self, other):
+        return self.filter(lambda m: m['other'] == other)
 
     def get_others(self):
         return frozenset((x.other for x in self if x.other))
