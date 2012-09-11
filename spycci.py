@@ -1,23 +1,50 @@
-import time
+import datetime
 import yaml
 try:
     from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader
 
-class Movement(object):
+class Movement(dict):
     '''describe a money movement'''
-    def __init__(self, money, date=None, tags=set(), reason='', other='', good='', **kwargs):
+    def __init__(self, d={}):
         #TODO: use kwargs
-        self.date = date if date is not None else time.time() #TODO: change to a better representation
-        self.money = money
-        self.tags = tags
-        self.reason = reason
-        self.other = other
-        self.good = good
+        for key, value in d.items():
+            self[key] = value
+
+    #boring defaults
+    @property
+    def money(self):
+        '''Money amount'''
+        return self['money'] if 'money' in self else 0
+    @property
+    def tags(self):
+        if 'tags' not in self:
+            self.tags = set()
+        return self['tags']
+    @property
+    def other(self):
+        return self['other'] if 'other' in self else ''
+    @property
+    def date(self):
+        return self['date'] if 'date' in self else datetime.date(1970,1,1)
 
     def __str__(self):
         return '<Movement: %d>' % self.money
+    
+    def update(self, *args, **kwargs):
+        for k,v in dict(*args, **kwargs).iteritems():
+            self[k] = v
+
+    #setters are here; who knows why this is needed...
+    def __setitem__(self, key, value):
+        if key == 'date':
+            dict.__setitem__(self, key, datetime.date(
+                *[int(x) for x in value.split('-')]))
+        elif key == 'tags':
+            dict.__setitem__(self, key, set(value))
+        else:
+            dict.__setitem__(self, key, value)
 
 class Balance(list):
     '''a list of Movement, with nice methods'''
@@ -28,8 +55,9 @@ class Balance(list):
         return Balance([m for m in self if function(m)])
 
     def filter_period(self, start=0, end=None):
+        '''Get movements between start and end'''
         if end is None:
-            end = time.time()
+            end = datetime.date.today()
         return self.filter(lambda m: start < m.date < end)
     def filter_tags(self, tags):
         '''this filter for ANY tag in tags (they are ORed)'''
@@ -49,7 +77,7 @@ def get_balance(filename):
     with open(filename, 'r') as f:
         data = yaml.load(f, Loader=Loader)
         for m in data:
-            movement = Movement(**m)
+            movement = Movement(m)
             b.append(movement)
 
     return b
