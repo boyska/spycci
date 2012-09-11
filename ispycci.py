@@ -20,7 +20,15 @@ def show(mov_or_bal=b, verbose=False):
             _show_mov(m)
 #    return mov_or_bal
 
-def table(bal=b):
+def table(bal=b, **kwargs):
+    '''first argument (optional) is the balance;
+    then kw args for printing table:
+    - sortby = name of column
+    - reversesort = false/true
+    - fields = list of columns
+    - start = row number (included)
+    - end = row number (not included)
+    '''
     headers = set()
     for m in bal:
         headers.update({k for k in m.keys()})
@@ -31,7 +39,9 @@ def table(bal=b):
         for h in headers:
             fields.append(m[h])
         tab.add_row(fields)
-    print tab.get_string(sortby="date")
+    args = { 'sortby': 'date' } if 'date' in headers else {}
+    args.update(kwargs)
+    print tab.get_string(**args)
 
 
 
