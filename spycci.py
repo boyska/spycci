@@ -22,6 +22,11 @@ class Movement(dict):
             self[k] = v
 
     #setters are here; who knows why this is needed...
+    def __getattr__(self, key):
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            raise AttributeError(key)
     def __getitem__(self, key):
         if key == 'tags':
             return dict.__getitem__(self, 'tags') if 'tags' in self else set()
@@ -72,8 +77,18 @@ class Balance(list):
 
     def __str__(self):
         return '<Balance: #%d>' % len(self)
-    def __getslice__(self, start, end, step=1):
-        return Balance(self.__getitem__(slice(start, end, step)))
+    def __getitem__(self, item_or_slice):
+        if type(item_or_slice) is int:
+            return list.__getitem__(self, item_or_slice)
+        elif type(item_or_slice) is slice:
+            return Balance(list.__getitem__(self, item_or_slice))
+        else:
+            raise ValueError('<%s> is not a valid type for indexing a Balance'
+                    % type(item_or_slice))
+    def __getslice__(self, start, end):
+# we need this because list implements it; so we have to override, even if
+# the logic is already contained in __getitem__ and __getslice__ is deprecated
+        return self.__getitem__(slice(start, end, 1))
 
 def get_balance(filename):
     '''read a yaml file and get a Balance'''
