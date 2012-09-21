@@ -1,4 +1,5 @@
 import datetime
+from itertools import imap
 
 import yaml
 try:
@@ -65,23 +66,21 @@ class Balance(list):
         return self.filter(lambda m: m['other'] == other)
 
     def get_others(self):
-        return frozenset((x.other for x in self if x.other))
+        return frozenset((x['other'] for x in self if x['other']))
     def total(self):
-        return sum((m.money for m in self))
+        return sum((m['money'] for m in self))
 
     def __str__(self):
         return '<Balance: #%d>' % len(self)
+    def __getslice__(self, start, end, step=1):
+        return Balance(self.__getitem__(slice(start, end, step)))
 
 def get_balance(filename):
     '''read a yaml file and get a Balance'''
-    b = Balance()
     with open(filename, 'r') as f:
         data = yaml.load(f, Loader=Loader)
-        for m in data:
-            movement = Movement(m)
-            b.append(movement)
-
-    return b
+        b = Balance(imap(Movement, (m for m in data)))
+        return b
 
 #TODO: a cli that is based on ipython
 
@@ -108,3 +107,5 @@ if __name__ == '__main__':
     print 'foo', b2, [str(m) for m in b2]
     b2 = b.filter_tags({'asd', 'baz'})
     print 'asd baz', b2, [str(m) for m in b2]
+
+# vim: set ts=4 sw=4 expandtab:
