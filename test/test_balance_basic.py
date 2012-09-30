@@ -28,6 +28,17 @@ def test_total():
     assert std_bal[:1].total() == 100
     assert std_bal[-1:].total() == -20
 
+def test_filter_other():
+    x = std_bal.filter_other('X Guy')
+    y = std_bal.filter_other('Y Guy')
+    z = std_bal.filter_other('Non existing Guy')
+
+    for b in (x,y,z):
+        assert type(b) is Balance
+    assert len(z) == 0
+    assert len(x) == 1
+    assert len(y) == 2
+
 
 
 # vim: set ts=4 sw=4 expandtab:
