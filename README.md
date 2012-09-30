@@ -1,5 +1,5 @@
-spycci
-======
+About
+=====
 
 This is basically a non-manager for your money/things.
 It also features a non-interface for it.
@@ -17,8 +17,8 @@ it is a list of movements
 
 ### What's a movement?
 
-It is a flow of money/things between you and one other
-subject.
+It is a flow of money/things between you and one other subject.
+It is represented as a (subclass of a) dict
 
 ### What properties has a movement
 
@@ -40,7 +40,7 @@ It's a YAML file.
 YAML is quite nice, readable, and supports different styles, comments... lots
 of nice things.
 
-Here's an example:
+Here's an example (see `example.yaml`):
 
     - { good: the art of computer programming, other: guy1, date: '2012-01-20' }
     - { good: -laptop, other: guy1}
@@ -77,5 +77,35 @@ And you can write your own complex filter using
 	b.filter(func_or_lambda)
 
 **NOTE**: there's no interface to add/edit your balance; use $EDITOR
+
+HOWTO
+======
+
+OK, you like it. Now, how to use it?
+
+Editing
+--------
+
+Just populate your yaml file using `$EDITOR`; it is quite easy, and you can
+take inspiration from `example.yaml`
+
+Querying
+--------
+
+    python2 ispiccy.py myfile.yaml
+
+This will open an IPython interface, where your balance is loaded as `b`.
+To view it, use `table()`. It's just a nice table of your movements.
+
+The "b" object can be inspected pressing `b.<TAB>`: the most interesting
+methods are probably `total` and `filter_*`:
+
+ - `b.total()` will get you your "grand total"
+ - `b.filter_other("foo")` will get you the "filtered balance"
+ - `table(b.filter_other("foo"))` will show it nice
+ - `b.filter_other("foo").total()` will get you the total for foo
+
+You can extend it with new filter functions, add new representation
+methods... whatever. It's just python.
 
 vim: set tw=79 ft=markdown:
