@@ -1,6 +1,7 @@
 import sys
 
-from IPython import embed
+from IPython import core
+from IPython.frontend.terminal.embed import InteractiveShellEmbed
 import spycci
 from prettytable import PrettyTable
 
@@ -43,6 +44,10 @@ def table(bal=b, **kwargs):
     args.update(kwargs)
     print tab.get_string(**args)
 
-
-
-embed()
+spycci_guide = core.usage.quick_guide + '''
+b         -> your Balance object
+table(b)  -> shows a nice table for the balance
+show(b)   -> shows the balance
+'''
+ipshell = InteractiveShellEmbed(banner1='Welcome to spycci')
+ipshell(spycci_guide)
