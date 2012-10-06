@@ -21,7 +21,7 @@ def show(mov_or_bal=b, verbose=False):
             _show_mov(m)
 #    return mov_or_bal
 
-def table(bal=b, **kwargs):
+def _balance_table(bal=b, **kwargs):
     '''first argument (optional) is the balance;
     then kw args for printing table:
     - sortby = name of column
@@ -42,7 +42,15 @@ def table(bal=b, **kwargs):
         tab.add_row(fields)
     args = { 'sortby': 'date' } if 'date' in headers else {}
     args.update(kwargs)
-    print tab.get_string(**args)
+    return tab.get_string(**args)
+
+def _balance_to_text(bal, p, *args, **kwargs):
+    '''IPython pretty printer for balance objects'''
+    p.text(_balance_table(bal))
+    return None
+
+def table(bal=b, **kwargs):
+    print _balance_table(bal, **kwargs)
 
 spycci_guide = core.usage.quick_guide + '''
 b         -> your Balance object
@@ -50,4 +58,6 @@ table(b)  -> shows a nice table for the balance
 show(b)   -> shows the balance
 '''
 ipshell = InteractiveShellEmbed(banner1='Welcome to spycci')
+formatter = ipshell.display_formatter.formatters['text/plain']
+formatter.for_type(spycci.Balance, _balance_to_text)
 ipshell(spycci_guide)
